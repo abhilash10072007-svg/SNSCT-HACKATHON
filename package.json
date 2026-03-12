@@ -1,0 +1,14 @@
+{
+  "name": "smart-doubt-exchange",
+  "version": "1.0.0",
+  "scripts": {
+    "install-all": "cd backend && npm install && cd ../frontend && npm install",
+    "start-backend": "cd backend && npm start",
+    "start-frontend": "cd frontend && npm start",
+    "dev": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm start\"",
+    "setup": "npm run install-all && echo '✅ All dependencies installed! Now configure backend/.env and run: npm run dev'"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
