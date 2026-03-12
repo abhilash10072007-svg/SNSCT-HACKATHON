@@ -4,9 +4,10 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const { startAutoAnswerJob } = require('./utils/autoAnswerJob');
 
 const app = express();
-
+app.set('trust proxy', 1);
 // Security middleware
 app.use(helmet());
 app.use(cors({
@@ -31,8 +32,8 @@ app.use('/api/users', require('./routes/users'));
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    success: true, 
+  res.json({
+    success: true,
     message: 'Smart Doubt Exchange API is running!',
     timestamp: new Date().toISOString()
   });
@@ -64,6 +65,7 @@ mongoose.connect(process.env.MONGODB_URI, {
   app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`🌐 API: http://localhost:${PORT}/api`);
+    startAutoAnswerJob(); // ← ADDED HERE
   });
 })
 .catch(err => {
