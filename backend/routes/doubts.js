@@ -336,4 +336,30 @@ router.post('/:id/ai-answer', protect, async (req, res) => {
   }
 });
 
+// @POST /api/doubts/similar - Find similar doubts via ML
+router.post('/similar', protect, async (req, res) => {
+  try {
+    const { title, content, subject } = req.body;
+    
+    // Get all doubts from DB
+    const doubts = await Doubt.find({ status: 'open' })
+      .select('_id title content subject status answerCount')
+      .limit(100);
+
+    // Call ML service
+    const mlResponse = await fetch('http://localhost:5001/similar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, content, subject, doubts, top_n: 3 })
+    });
+
+    const data = await mlResponse.json();
+    res.json({ success: true, similar: data.similar || [] });
+
+  } catch (error) {
+    console.error('ML service error:', error.message);
+    res.json({ success: true, similar: [] }); // fail silently
+  }
+});
+
 module.exports = router;

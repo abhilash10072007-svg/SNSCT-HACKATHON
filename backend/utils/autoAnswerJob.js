@@ -8,7 +8,7 @@ const { generateAIAnswer } = require('./aiAnswer');
 const startAutoAnswerJob = () => {
   cron.schedule('* * * * *', async () => {
     try {
-      const tenMinutesAgo = new Date(Date.now() - 1 * 60 * 1000);
+      const tenMinutesAgo = new Date(Date.now() - 15 * 1000);
 
       // Find doubts that:
       // 1. Are still open
