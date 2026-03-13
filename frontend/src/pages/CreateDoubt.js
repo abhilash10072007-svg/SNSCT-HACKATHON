@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createDoubt } from '../utils/api';
 import toast from 'react-hot-toast';
@@ -13,6 +13,34 @@ export default function CreateDoubt() {
   });
   const [tagInput, setTagInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [similarDoubts, setSimilarDoubts] = useState([]);
+
+  useEffect(() => {
+    if (!form.title || form.title.length < 10) {
+      setSimilarDoubts([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:5000/api/doubts/similar', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            title: form.title,
+            content: form.content,
+            subject: form.subject
+          })
+        });
+        const data = await response.json();
+        setSimilarDoubts(data.similar || []);
+      } catch {}
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [form.title, form.content, form.subject]);
 
   const addTag = (e) => {
     if ((e.key === 'Enter' || e.key === ',') && tagInput.trim()) {
@@ -50,6 +78,8 @@ export default function CreateDoubt() {
 
       <div className="card">
         <form onSubmit={handleSubmit}>
+
+          {/* Title */}
           <div className="form-group">
             <label className="form-label">Title <span style={{ color: 'var(--red)' }}>*</span></label>
             <input
@@ -61,9 +91,51 @@ export default function CreateDoubt() {
               minLength={10}
               maxLength={200}
             />
-            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{form.title.length}/200</div>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
+              {form.title.length}/200
+            </div>
           </div>
 
+          {/* Similar Doubts Widget */}
+          {similarDoubts.length > 0 && (
+            <div style={{
+              background: 'rgba(255,200,0,0.05)',
+              border: '1px solid rgba(255,200,0,0.2)',
+              borderRadius: 12,
+              padding: 16,
+              marginBottom: 16
+            }}>
+              <p style={{ fontSize: 13, color: '#ffc800', marginBottom: 10, fontWeight: 600 }}>
+                ⚠️ Similar doubts already exist — check before posting:
+              </p>
+              {similarDoubts.map(d => (
+  <a
+    key={d._id}
+    href={`/doubts/${d._id}`}
+    target="_blank"
+    rel="noreferrer"
+    style={{
+      display: 'block',
+      padding: '8px 12px',
+      marginBottom: 6,
+      background: 'var(--bg-hover)',
+      borderRadius: 8,
+      fontSize: 13,
+      color: 'var(--text-primary)',
+      textDecoration: 'none',
+      border: '1px solid var(--border)'
+    }}
+  >
+    📌 {d.title}
+    <span style={{ color: 'var(--text-muted)', marginLeft: 8 }}>
+      {d.answerCount} answers • {d.subject}
+    </span>
+  </a>
+))}
+            </div>
+          )}
+
+          {/* Subject + Priority */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             <div className="form-group">
               <label className="form-label">Subject <span style={{ color: 'var(--red)' }}>*</span></label>
@@ -95,27 +167,35 @@ export default function CreateDoubt() {
             </div>
           </div>
 
+          {/* Description */}
           <div className="form-group">
             <label className="form-label">Description <span style={{ color: 'var(--red)' }}>*</span></label>
             <textarea
               className="form-input form-textarea"
-              placeholder="Explain your doubt in detail. Include what you've already tried, what you expected, and what happened instead. The more context, the better answers you'll get."
+              placeholder="Explain your doubt in detail. Include what you've already tried, what you expected, and what happened instead."
               rows={8}
               value={form.content}
               onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
               required
               minLength={20}
             />
-            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{form.content.length} characters (min 20)</div>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
+              {form.content.length} characters (min 20)
+            </div>
           </div>
 
+          {/* Tags */}
           <div className="form-group">
             <label className="form-label">Tags (up to 5)</label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
               {form.tags.map(tag => (
                 <span key={tag} className="tag" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                   {tag}
-                  <button type="button" onClick={() => removeTag(tag)} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 0 }}>
+                  <button
+                    type="button"
+                    onClick={() => removeTag(tag)}
+                    style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 0 }}
+                  >
                     <X size={12} />
                   </button>
                 </span>
@@ -132,6 +212,7 @@ export default function CreateDoubt() {
             )}
           </div>
 
+          {/* Footer */}
           <div style={{ borderTop: '1px solid var(--border)', paddingTop: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 14 }}>
               <input

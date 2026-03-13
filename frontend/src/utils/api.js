@@ -1,5 +1,5 @@
 import axios from 'axios';
-
+export const findSimilarDoubts = (data) => API.post('/doubts/similar', data);
 const API = axios.create({
   baseURL: process.env.REACT_APP_API_URL || '/api',
   headers: { 'Content-Type': 'application/json' }
