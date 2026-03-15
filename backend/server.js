@@ -29,6 +29,7 @@ app.use('/api', globalLimiter);
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/doubts', require('./routes/doubts'));
 app.use('/api/users', require('./routes/users'));
+app.use('/api/similar', require('./routes/similar'));
 
 // Health check
 app.get('/api/health', (req, res) => {
